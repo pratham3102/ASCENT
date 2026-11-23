@@ -1,0 +1,1007 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>A.S.C.E.N.T.</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="A.S.C.E.N.T. (Altitude Safety & Climber Emergency Notification Technology): a wearable safety system for mountain climbers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout concept: alpine field-instrument look. Navy + glacier tones, one yellow accent,
+   red reserved for emergencies. Big editorial headlines, mono readouts for live data. */
+:root{
+  --bg:#f2f6fc; --surface:#ffffff; --surface-2:#e8eff9; --ink:#0a1f44; --muted:#4d5f7e; --line:#d3deee;
+  --primary:#0c2a5e; --on-primary:#ffffff; --blue:#2467d1; --accent:#f5b800; --on-accent:#0a1f44;
+  --ok:#14805a; --ok-bg:#dff3ea; --warn:#a86b00; --warn-bg:#fdf0cf; --danger:#c8312f; --danger-bg:#fbe3e2;
+  --ridge-1:#d5e2f5; --ridge-2:#b9cdea; --hero-glow:#ffffff;
+  --shadow:0 1px 2px rgba(10,31,68,.06),0 12px 32px rgba(10,31,68,.08);
+  --font-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --font-body:"Instrument Sans","Segoe UI",system-ui,-apple-system,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#071226; --surface:#0d1e3d; --surface-2:#122a52; --ink:#eaf1fb; --muted:#9db0cf; --line:#1f3764;
+    --primary:#f5b800; --on-primary:#0a1f44; --blue:#6aa2ff; --accent:#f5b800; --on-accent:#0a1f44;
+    --ok:#4cd6a0; --ok-bg:#0f3a2e; --warn:#f5c04a; --warn-bg:#3b2f0c; --danger:#ff7a78; --danger-bg:#431a1c;
+    --ridge-1:#0f2547; --ridge-2:#16325f; --hero-glow:#143063;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px rgba(0,0,0,.35);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#071226; --surface:#0d1e3d; --surface-2:#122a52; --ink:#eaf1fb; --muted:#9db0cf; --line:#1f3764;
+  --primary:#f5b800; --on-primary:#0a1f44; --blue:#6aa2ff; --accent:#f5b800; --on-accent:#0a1f44;
+  --ok:#4cd6a0; --ok-bg:#0f3a2e; --warn:#f5c04a; --warn-bg:#3b2f0c; --danger:#ff7a78; --danger-bg:#431a1c;
+  --ridge-1:#0f2547; --ridge-2:#16325f; --hero-glow:#143063;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:96px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+img{display:block;max-width:100%;height:auto}
+[hidden]{display:none!important}
+a{color:var(--blue)}
+h1,h2,h3,h4{font-family:var(--font-display);line-height:1.08;margin:0;text-wrap:balance;letter-spacing:-.015em}
+h1{font-size:clamp(2.6rem,6.4vw,5rem);font-weight:800}
+h2{font-size:clamp(1.9rem,4vw,3rem);font-weight:800}
+h3{font-size:1.25rem;font-weight:700;letter-spacing:-.005em}
+p{margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.eyebrow{font-family:var(--font-mono);font-size:.75rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:1.15rem;color:var(--muted);max-width:60ch}
+:focus-visible{outline:3px solid var(--blue);outline-offset:3px;border-radius:4px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:.5rem;font:600 1rem var(--font-body);padding:.85rem 1.35rem;border-radius:10px;border:2px solid transparent;text-decoration:none;cursor:pointer;transition:transform .15s,background .15s}
+.btn-primary{background:var(--primary);color:var(--on-primary)}
+.btn-primary:hover{transform:translateY(-2px)}
+.btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn-ghost:hover{border-color:var(--ink)}
+
+/* nav */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:50}
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:1.25rem;min-height:64px}
+.brand{display:flex;align-items:center;gap:.6rem;text-decoration:none;color:var(--ink);font-family:var(--font-display);font-weight:800;font-size:1.25rem;letter-spacing:.01em;flex:none}
+.brand svg{width:34px;height:34px;color:var(--primary)}
+.nav-links{display:flex;gap:.15rem;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{white-space:nowrap;color:var(--muted);text-decoration:none;font-weight:500;font-size:.93rem;padding:.5rem .7rem;border-radius:8px}
+.nav-links a:hover,.nav-links a[aria-current="true"]{color:var(--ink);background:var(--surface-2)}
+.theme-btn{flex:none;width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;cursor:pointer}
+.theme-btn svg{width:20px;height:20px}
+
+/* hero */
+.hero{position:relative;overflow:hidden;padding-block:clamp(48px,8vw,104px) clamp(64px,9vw,120px);background:radial-gradient(900px 480px at 78% 12%,var(--hero-glow),transparent 70%)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:clamp(28px,5vw,72px);align-items:center;position:relative;z-index:1}
+.hero h1 span{color:var(--blue)}
+.hero .lede{margin-top:1.4rem}
+.hero-cta{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:2rem}
+.hero-meta{margin-top:2.2rem;display:flex;flex-wrap:wrap;gap:.5rem 1.4rem}
+.hero-meta span{font-family:var(--font-mono);font-size:.78rem;color:var(--muted)}
+.ridges{position:absolute;left:0;right:0;bottom:-1px;width:100%;height:clamp(110px,18vw,220px);z-index:0}
+.ridges .r1{fill:var(--ridge-1)} .ridges .r2{fill:var(--ridge-2)} .ridges .r3{fill:var(--bg)}
+
+.gauge{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:1.1rem 1.1rem 1.2rem}
+.gauge-head{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.4rem}
+.live{display:inline-flex;align-items:center;gap:.4rem;font-family:var(--font-mono);font-size:.72rem;color:var(--ok);font-weight:600;letter-spacing:.08em}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 1.8s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.gauge svg{width:100%;height:auto;display:block}
+.g-grid line{stroke:var(--line);stroke-width:1}
+.g-lbl{font:500 11px var(--font-mono);fill:var(--muted)}
+.g-area{fill:var(--blue);opacity:.14}
+.g-line{fill:none;stroke:var(--blue);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+.g-dot{fill:var(--accent);stroke:var(--ink);stroke-width:2}
+.readouts{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-top:.6rem}
+.readouts div{border-top:2px solid var(--line);padding-top:.5rem}
+.readouts small{display:block;font:500 .68rem var(--font-mono);letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.readouts b{font:600 1.15rem var(--font-mono);font-variant-numeric:tabular-nums}
+.readouts .st{color:var(--ok)}
+
+/* sections */
+section{padding-block:clamp(64px,9vw,112px)}
+.sec-head{display:grid;gap:1rem;margin-bottom:clamp(32px,5vw,56px);max-width:760px}
+.alt{background:var(--surface);border-block:1px solid var(--line)}
+
+/* overview */
+.ov-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(24px,4vw,56px)}
+.ov-block h3{margin-bottom:.6rem}
+.ov-block p{color:var(--muted)}
+.ov-block .tag{margin-bottom:.9rem;display:inline-block;font:600 .72rem var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--on-accent);background:var(--accent);padding:.25rem .6rem;border-radius:4px}
+.obj-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin-top:clamp(36px,5vw,64px);border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--surface)}
+.obj{padding:1.5rem;display:grid;gap:.6rem;align-content:start}
+.obj + .obj{border-left:1px solid var(--line)}
+.obj svg{width:30px;height:30px;color:var(--blue)}
+.obj p{color:var(--muted);font-size:.97rem}
+.benefits{margin-top:clamp(32px,4vw,48px);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1.2rem 1.6rem;list-style:none;padding:0}
+.benefits li{padding-left:1.7rem;position:relative;font-weight:500}
+.benefits li::before{content:"";position:absolute;left:0;top:.35em;width:.95rem;height:.95rem;border-radius:50%;background:var(--ok-bg);border:2px solid var(--ok)}
+
+/* case */
+.case{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(24px,5vw,64px);align-items:center}
+.case figure{margin:0}
+.case img{border-radius:14px;border:1px solid var(--line);box-shadow:var(--shadow)}
+.case blockquote{margin:1.3rem 0 0;padding-left:1.1rem;border-left:4px solid var(--accent);color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.4rem}
+.chip{font:500 .8rem var(--font-mono);padding:.3rem .7rem;border-radius:999px;background:var(--surface-2);border:1px solid var(--line)}
+
+/* how */
+.units{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.2rem;margin-bottom:2rem}
+.unit{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:1.5rem;display:grid;gap:.7rem;align-content:start}
+.alt .unit{background:var(--bg)}
+.unit .eyebrow{color:var(--blue)}
+.unit ul{margin:.2rem 0 0;padding-left:1.1rem;color:var(--muted);font-size:.96rem}
+.unit li+li{margin-top:.25rem}
+.diagram{border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:1rem;overflow-x:auto}
+.alt .diagram{background:var(--bg)}
+.diagram svg{min-width:720px;width:100%;height:auto;display:block}
+.d-box{fill:var(--surface);stroke:var(--ink);stroke-width:1.5}
+.alt .d-box{fill:var(--surface)}
+.d-box.hl{fill:var(--accent);stroke:var(--ink)}
+.d-t{font:700 15px var(--font-display);fill:var(--ink)}
+.d-s{font:500 11.5px var(--font-mono);fill:var(--muted)}
+.d-t.hl{fill:var(--on-accent)} .d-s.hl{fill:var(--on-accent)}
+.d-line{stroke:var(--blue);stroke-width:2;fill:none}
+.d-dash{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:5 5;fill:none}
+.flow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;margin-top:2rem;list-style:none;padding:0;counter-reset:s}
+.flow li{counter-increment:s;padding:1rem 1rem 0 0;border-top:3px solid var(--line);position:relative}
+.flow li::before{content:counter(s);position:absolute;top:-3px;left:0;transform:translateY(-100%);font:600 .8rem var(--font-mono);color:var(--blue);padding-bottom:.4rem}
+.flow li.sos{border-top-color:var(--danger)}
+.flow b{display:block;font-family:var(--font-display);font-size:1.05rem;margin-top:.5rem}
+.flow span{display:block;font-size:.88rem;color:var(--muted);line-height:1.45;margin-top:.2rem}
+
+/* features */
+.feat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 clamp(24px,4vw,56px)}
+.feat article{padding-block:1.6rem;border-top:1px solid var(--line);display:grid;grid-template-columns:34px minmax(0,1fr);gap:0 1rem;align-content:start}
+.feat svg{width:30px;height:30px;color:var(--blue);margin-top:.15rem}
+.feat h3{margin-bottom:.35rem}
+.feat p{color:var(--muted);font-size:.97rem;grid-column:2}
+.feat .red svg{color:var(--danger)}
+
+/* simulator */
+.sim{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.9fr);gap:clamp(24px,5vw,64px);align-items:center}
+.ctrl{display:grid;gap:1.3rem}
+.ctrl label{display:grid;gap:.35rem}
+.ctrl .row{display:flex;justify-content:space-between;align-items:baseline;font-weight:600}
+.ctrl output{font:600 1.05rem var(--font-mono);font-variant-numeric:tabular-nums}
+.ctrl input[type=range]{width:100%;accent-color:var(--blue);height:28px}
+.ctrl .hint{font:500 .72rem var(--font-mono);color:var(--muted)}
+.toggles{display:flex;gap:.7rem;flex-wrap:wrap}
+.tog{display:flex;align-items:center;gap:.55rem;border:1.5px solid var(--line);border-radius:10px;padding:.6rem .9rem;cursor:pointer;font-weight:600;background:var(--surface)}
+.tog input{width:18px;height:18px;accent-color:var(--danger)}
+.preset{display:flex;flex-wrap:wrap;gap:.5rem}
+.preset button{font:600 .85rem var(--font-body);padding:.45rem .8rem;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.preset button:hover{border-color:var(--ink)}
+.watch-wrap{display:grid;justify-items:center;gap:1.2rem}
+.watch{width:min(100%,340px);aspect-ratio:1;border-radius:50%;padding:14px;background:linear-gradient(145deg,#2a3550,#0b1224);box-shadow:var(--shadow),inset 0 0 0 2px #3a4768}
+.face{width:100%;height:100%;border-radius:50%;background:#071226;color:#eaf1fb;display:grid;place-content:center;justify-items:center;text-align:center;gap:.35rem;border:6px solid #1f6f4e;transition:border-color .25s,background .25s;padding:1rem}
+.face[data-level="warn"]{border-color:#f5b800;background:#2a2008}
+.face[data-level="sos"]{border-color:#ff4b47;background:#32100f;animation:ring 1s infinite}
+@keyframes ring{50%{border-color:#7a2220}}
+.face small{font:500 .68rem var(--font-mono);letter-spacing:.14em;color:#9db0cf}
+.face .big{font:800 1.7rem var(--font-display);line-height:1}
+.face .vals{display:flex;gap:.9rem;font:600 .82rem var(--font-mono);color:#cfe0fb;margin-top:.2rem}
+.face .msg{font-size:.78rem;line-height:1.3;max-width:15ch;color:#eaf1fb}
+.verdict{width:100%;border:1px solid var(--line);border-radius:14px;padding:1rem 1.1rem;background:var(--surface);min-height:7.5rem}
+.verdict h4{font:700 1rem var(--font-display);margin-bottom:.5rem}
+.verdict ul{margin:0;padding:0;list-style:none;display:grid;gap:.4rem;font-size:.95rem}
+.verdict li{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+.pill{font:600 .68rem var(--font-mono);letter-spacing:.08em;text-transform:uppercase;padding:.15rem .5rem;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.pill.fw{color:var(--ok)} .pill.pl{color:var(--warn)}
+.note{font-size:.85rem;color:var(--muted);margin-top:1.4rem;max-width:62ch}
+
+/* dashboard */
+.dash{border:1px solid var(--line);border-radius:18px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
+.dash-top{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.8rem 1.2rem;border-bottom:1px solid var(--line);background:var(--surface-2);flex-wrap:wrap}
+.dash-top b{font-family:var(--font-display)}
+.hist-btn{font:700 .8rem var(--font-body);letter-spacing:.06em;text-transform:uppercase;padding:.4rem .9rem;border-radius:8px;border:1.5px solid var(--warn);background:var(--warn-bg);color:var(--warn);margin-right:auto;margin-left:.5rem;cursor:default}
+.dash-top span{font:500 .75rem var(--font-mono);color:var(--muted)}
+.dash-body{display:grid;grid-template-columns:260px minmax(0,1fr)}
+.tlist{border-right:1px solid var(--line);display:grid;align-content:start}
+.tbtn{display:grid;grid-template-columns:12px minmax(0,1fr);gap:.1rem .7rem;text-align:left;padding:.9rem 1.1rem;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;cursor:pointer;align-items:center}
+.tbtn:hover{background:var(--surface-2)}
+.tbtn[aria-pressed="true"]{background:var(--surface-2);box-shadow:inset 3px 0 0 var(--blue)}
+.tbtn i{width:10px;height:10px;border-radius:50%;grid-row:1/3;background:var(--muted)}
+.tbtn i.ok{background:var(--ok)} .tbtn i.sos{background:var(--danger);animation:pulse 1s infinite} .tbtn i.off{background:var(--muted)} .tbtn i.fall{background:var(--warn)}
+.tbtn b{font-weight:600;line-height:1.2}
+.tbtn small{color:var(--muted);font-size:.78rem;line-height:1.2}
+.tdetail{padding:1.3rem 1.4rem;display:grid;gap:1.2rem;min-width:0}
+.banner{padding:.7rem 1rem;border-radius:10px;font-weight:600;font-size:.92rem}
+.banner.sos{background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger)}
+.banner.off{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn)}
+.tbar{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:flex-start}
+.tbar h3{font-size:1.5rem}
+.tbar p{color:var(--muted);font-size:.93rem}
+.status{font:600 .72rem var(--font-mono);letter-spacing:.1em;padding:.3rem .7rem;border-radius:999px;border:1px solid currentColor}
+.status.ok{color:var(--ok)} .status.sos{color:var(--danger)} .status.off{color:var(--muted)} .status.fall{color:var(--warn)}
+.prog{display:grid;gap:.3rem}
+.prog .bar{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}
+.prog .bar i{display:block;height:100%;background:var(--blue)}
+.prog small{font:500 .75rem var(--font-mono);color:var(--muted)}
+.vit{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem}
+.vt{border:1px solid var(--line);border-radius:12px;padding:.7rem .9rem;background:var(--bg)}
+.vt small{font:500 .68rem var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.vt b{display:block;font:600 1.5rem var(--font-mono);font-variant-numeric:tabular-nums;line-height:1.3}
+.vt b em{font:500 .75rem var(--font-mono);font-style:normal;color:var(--muted);margin-left:.2rem}
+.vt.bad{border-color:var(--danger);background:var(--danger-bg)}
+.vt.bad b{color:var(--danger)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+.panel{border:1px solid var(--line);border-radius:12px;padding:.9rem 1rem;min-width:0}
+.panel h4{font:600 .72rem var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.6rem}
+.panel svg{width:100%;height:auto;display:block}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:.3rem 1rem;font-size:.9rem}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-weight:500;text-align:right;min-width:0;overflow-wrap:anywhere}
+.log{list-style:none;margin:0;padding:0;display:grid;gap:.5rem;font-size:.9rem}
+.log li{display:grid;grid-template-columns:auto 1fr;gap:.2rem .8rem;border-bottom:1px dashed var(--line);padding-bottom:.45rem}
+.log li:last-child{border-bottom:0;padding-bottom:0}
+.log time{font:500 .75rem var(--font-mono);color:var(--muted);white-space:nowrap}
+.log span small{display:block;color:var(--muted);font-size:.8rem}
+.sp-line{fill:none;stroke:var(--blue);stroke-width:2.2;stroke-linejoin:round}
+.sp-fill{fill:var(--blue);opacity:.12}
+.sp-th{stroke:var(--danger);stroke-width:1;stroke-dasharray:4 4}
+
+/* hardware */
+.hw{width:100%;border-collapse:collapse;font-size:.97rem}
+.hw-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:16px;background:var(--surface)}
+.hw th,.hw td{text-align:left;padding:.95rem 1.2rem;border-bottom:1px solid var(--line);vertical-align:top}
+.hw th{font:600 .72rem var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:var(--surface-2)}
+.hw tr:last-child td{border-bottom:0}
+.hw td:first-child{font-weight:600;white-space:nowrap}
+.hw .mono{font-family:var(--font-mono);font-size:.82rem;color:var(--muted);display:block;font-weight:500}
+.state{font:600 .68rem var(--font-mono);letter-spacing:.08em;text-transform:uppercase;padding:.2rem .55rem;border-radius:999px;border:1px solid currentColor;white-space:nowrap;display:inline-block}
+.state.real{color:var(--ok)} .state.est{color:var(--warn)} .state.plan{color:var(--muted)}
+.honest{margin-top:2rem;display:grid;grid-template-columns:auto 1fr;gap:1rem;padding:1.2rem 1.4rem;border-radius:14px;background:var(--warn-bg);border:1px solid var(--warn);color:var(--ink)}
+.honest svg{width:28px;height:28px;color:var(--warn)}
+.honest p{font-size:.95rem}
+
+/* business */
+.bm-top{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(24px,5vw,64px);margin-bottom:clamp(36px,5vw,64px)}
+.bm-top .big{font:700 clamp(1.4rem,2.6vw,2rem)/1.25 var(--font-display);letter-spacing:-.01em}
+.bm-top .big b{color:var(--blue)}
+.seg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}
+.seg div{border:1px solid var(--line);border-radius:14px;padding:1.2rem;background:var(--surface);display:grid;gap:.4rem;align-content:start}
+.alt .seg div{background:var(--bg)}
+.seg h3{font-size:1.05rem}
+.seg p{font-size:.92rem;color:var(--muted)}
+.bm-h{margin:clamp(36px,5vw,56px) 0 1.2rem;font-size:1.4rem}
+.rev{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.rev article{border-radius:16px;padding:1.5rem;background:var(--primary);color:var(--on-primary);display:grid;gap:.6rem;align-content:start}
+.rev article:nth-child(2){background:var(--blue);color:#fff}
+:root[data-theme="dark"] .rev article:nth-child(2){color:#06122b}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .rev article:nth-child(2){color:#06122b}}
+.rev article:nth-child(3){background:var(--accent);color:var(--on-accent)}
+.rev .eyebrow{color:inherit;opacity:.8}
+.rev p{font-size:.95rem;opacity:.92}
+.adv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.2rem 3rem;list-style:none;padding:0;margin:0}
+.adv li{padding-top:1rem;border-top:1px solid var(--line)}
+.adv b{display:block;font-family:var(--font-display);font-size:1.1rem;margin-bottom:.2rem}
+.adv span{color:var(--muted);font-size:.96rem}
+.road{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));list-style:none;padding:0;margin:0;gap:0}
+.road li{position:relative;padding:1.4rem 1rem 0 0;border-top:3px solid var(--line)}
+.road li.done{border-top-color:var(--ok)}
+.road li::before{content:"";position:absolute;top:-8px;left:0;width:13px;height:13px;border-radius:50%;background:var(--bg);border:3px solid var(--line)}
+.alt .road li::before{background:var(--surface)}
+.road li.done::before{background:var(--ok);border-color:var(--ok)}
+.road b{display:block;font-family:var(--font-display);font-size:1.02rem}
+.road span{display:block;font-size:.88rem;color:var(--muted);line-height:1.4;margin-top:.15rem}
+.road small{font:600 .68rem var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.road li.done small{color:var(--ok)}
+
+/* expert video */
+.expert{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:clamp(24px,4vw,48px);align-items:start}
+.expert.solo{grid-template-columns:minmax(0,980px)}
+.vframe{position:relative;aspect-ratio:16/9;border-radius:18px;overflow:hidden;background:#06122b;border:1px solid var(--line);box-shadow:var(--shadow)}
+.vframe video,.vframe iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+.vph{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:.9rem;text-align:center;padding:1.5rem;color:#eaf1fb;background:
+  linear-gradient(180deg,rgba(6,18,43,.2),rgba(6,18,43,.92)),
+  radial-gradient(500px 240px at 50% 0%,#1d4388,transparent 70%),#06122b}
+.vph .play{width:76px;height:76px;border-radius:50%;background:var(--accent);display:grid;place-items:center;color:#0a1f44}
+.vph .play svg{width:30px;height:30px;margin-left:4px}
+.vph h3{color:#fff}
+.vph p{color:#b9c9e6;font-size:.92rem;max-width:44ch}
+.vph code{font:500 .85rem var(--font-mono);background:rgba(255,255,255,.1);border:1px dashed rgba(255,255,255,.4);padding:.3rem .6rem;border-radius:6px;color:#ffd866;word-break:break-all}
+.ex-side{display:grid;gap:1.2rem}
+.ex-side h3{font-size:1.15rem}
+.ex-side ul{margin:.4rem 0 0;padding-left:1.1rem;color:var(--muted)}
+.ex-side li+li{margin-top:.4rem}
+.ex-who{padding:1.1rem 1.2rem;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.ex-who b{display:block;font-family:var(--font-display);font-size:1.2rem}
+.ex-who span{color:var(--muted);font-size:.92rem}
+
+/* gallery */
+.gal{columns:3;column-gap:1.1rem}
+.gal figure{margin:0 0 1.1rem;break-inside:avoid}
+.gal button{display:block;width:100%;padding:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface);cursor:zoom-in;box-shadow:var(--shadow)}
+.gal img{width:100%;transition:transform .35s}
+.gal button:hover img{transform:scale(1.03)}
+.gal figcaption{font-size:.88rem;color:var(--muted);padding:.5rem .2rem 0}
+.gal figcaption b{color:var(--ink);font-weight:600}
+dialog.lb{border:0;padding:0;background:transparent;max-width:min(96vw,1400px);max-height:94vh;width:auto;overflow:visible}
+dialog.lb::backdrop{background:rgba(4,10,24,.88)}
+.lb img{max-height:88vh;width:auto;max-width:100%;border-radius:10px;margin:0 auto}
+.lb p{color:#dbe6fa;text-align:center;margin-top:.6rem;font-size:.92rem}
+.lb .x{position:absolute;top:-14px;right:-6px;width:40px;height:40px;border-radius:50%;border:0;background:var(--accent);color:#0a1f44;font:700 1.3rem var(--font-body);cursor:pointer}
+
+/* team */
+.team{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:clamp(24px,5vw,64px);align-items:center}
+.card-c{border:1px solid var(--line);border-radius:18px;padding:1.6rem;background:var(--bg);display:grid;gap:.8rem}
+.alt .card-c{background:var(--bg)}
+.card-c b{font:800 1.4rem var(--font-display)}
+.card-c .mono{font:500 .95rem var(--font-mono);overflow-wrap:anywhere;user-select:all}
+.cp{font:600 .85rem var(--font-body);padding:.4rem .8rem;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;justify-self:start}
+footer{padding-block:2.2rem 3rem;border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
+footer .wrap{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+
+/* responsive */
+@media (max-width:980px){
+  .hero-grid,.case,.sim,.bm-top,.expert,.team{grid-template-columns:minmax(0,1fr)}
+  .units,.feat,.rev{grid-template-columns:minmax(0,1fr)}
+  .seg,.benefits{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .flow{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:2.2rem}
+  .road{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:2rem}
+  .gal{columns:2}
+  .dash-body{grid-template-columns:minmax(0,1fr)}
+  .tlist{border-right:0;border-bottom:1px solid var(--line);grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tbtn{border-right:1px solid var(--line)}
+  .case figure{max-width:420px}
+}
+@media (max-width:620px){
+  body{font-size:16px}
+  .ov-grid,.adv,.two{grid-template-columns:minmax(0,1fr)}
+  .obj-row{grid-template-columns:minmax(0,1fr)} .obj+.obj{border-left:0;border-top:1px solid var(--line)}
+  .flow{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .seg,.benefits,.road{grid-template-columns:minmax(0,1fr)}
+  .vit{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gal{columns:1}
+  .readouts{grid-template-columns:repeat(2,1fr)}
+  .tlist{grid-template-columns:minmax(0,1fr)}
+  .nav .wrap{gap:.6rem}
+  .brand span{display:none}
+}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto} *{animation:none!important;transition:none!important}
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="logo" viewBox="0 0 48 48"><path d="M24 4a14 14 0 0 1 10 4.2M24 9.5a8.5 8.5 0 0 1 6 2.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M4 42 18 17l7 11 4-6 15 20z" fill="currentColor"/><path d="M18 17l4.5 7.5-3.5 1.5-2.5-3z" fill="var(--bg)" opacity=".7"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20.5s-8-4.7-8-11a4.5 4.5 0 0 1 8-2.8 4.5 4.5 0 0 1 8 2.8c0 6.3-8 11-8 11z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M5 12h3.5l1.6-3 2.5 6 1.7-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-mount" viewBox="0 0 24 24"><path d="M2 20 9 7l4 7 2.5-4L22 20z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2.5 20h19z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v4.5M12 17.4v.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M2.5 20c.4-3.6 3-5.5 6.5-5.5s6.1 1.9 6.5 5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16 5.3a3 3 0 0 1 0 5.4M18.5 14.8c1.7.7 2.8 2.3 3 5.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 20h8M12 16v4M6.5 12l3-3 2.5 2 4.5-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-fall" viewBox="0 0 24 24"><circle cx="16.5" cy="5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m4 9 5 1.5 3-3 3 3.2-3 3.3 3.5 5M12 13.5 9 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-chip" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4m0 1h12l-2.5 4L17 13H5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H10l-4.5 4v-4H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 9.5h8M8 12.5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-timer" viewBox="0 0 24 24"><circle cx="12" cy="13.5" r="7.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 9.5v4l2.5 1.5M9.5 3h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="1" fill="currentColor"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M6 3.5v17l14-8.5z" fill="currentColor"/></symbol>
+  </defs>
+</svg>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="A.S.C.E.N.T. home"><svg aria-hidden="true"><use href="#logo"/></svg><span>A.S.C.E.N.T.</span></a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#overview">Overview</a>
+      <a href="#how">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#alerts">Try it</a>
+      <a href="#dashboard">History</a>
+      <a href="#hardware">Hardware</a>
+      <a href="#business">Business</a>
+      <a href="#expert">Expert meet</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#team">Contact</a>
+    </nav>
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="Switch between light and dark theme"><svg aria-hidden="true"><use id="themeIcon" href="#i-moon"/></svg></button>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">Altitude Safety &amp; Climber Emergency Notification Technology</p>
+      <h1 style="margin-top:1rem">Every climb deserves a <span>safe return.</span></h1>
+      <p class="lede">A.S.C.E.N.T. is a wearable safety system for mountain climbers. It tracks health and altitude, links climbing buddies on the trail, and tells base camp the moment something goes wrong.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#how">See how it works</a>
+        <a class="btn btn-ghost" href="#expert">Watch the expert meet</a>
+      </div>
+      <div class="hero-meta">
+        <span>WSRO Entrepreneurship Competition</span>
+        <span>JBCN International School</span>
+        <span>Student innovation, India</span>
+      </div>
+    </div>
+
+    <div class="gauge" aria-label="Sample altitude profile with a climber's live readout">
+      <div class="gauge-head">
+        <span class="eyebrow">Trek altitude · sample day</span>
+        <span class="live"><i></i>LIVE SAMPLE</span>
+      </div>
+      <svg viewBox="0 50 520 270" role="img" aria-label="Altitude profile climbing from 3,600 m to 4,127 m over 8 hours">
+        <g class="g-grid">
+          <line x1="40" y1="260" x2="500" y2="260"/><line x1="40" y1="200" x2="500" y2="200"/><line x1="40" y1="140" x2="500" y2="140"/><line x1="40" y1="80" x2="500" y2="80"/>
+        </g>
+        <g class="g-lbl">
+          <text x="500" y="252" text-anchor="end">3,600 m</text><text x="500" y="192" text-anchor="end">3,800 m</text><text x="500" y="132" text-anchor="end">4,000 m</text><text x="500" y="72" text-anchor="end">4,200 m</text>
+          <text x="40" y="308">0 h</text><text x="150" y="308">2 h</text><text x="260" y="308">4 h</text><text x="370" y="308">6 h</text><text x="470" y="308">8 h</text>
+        </g>
+        <path class="g-area" d="M40 260 L95 248 L150 224 L205 230 L260 191 L315 170 L370 143 L425 122 L480 102 L480 290 L40 290 Z"/>
+        <path class="g-line" d="M40 260 L95 248 L150 224 L205 230 L260 191 L315 170 L370 143 L425 122 L480 102"/>
+        <circle class="g-dot" id="gDot" cx="480" cy="102" r="8"/>
+      </svg>
+      <div class="readouts" aria-live="off">
+        <div><small>Altitude</small><b id="rAlt">4,127 m</b></div>
+        <div><small>SpO₂</small><b>94 %</b></div>
+        <div><small>Heart rate</small><b>82 bpm</b></div>
+        <div><small>Status</small><b class="st">NORMAL</b></div>
+      </div>
+    </div>
+  </div>
+  <svg class="ridges" viewBox="0 0 1440 220" preserveAspectRatio="none" aria-hidden="true">
+    <path class="r1" d="M0 140 160 60 260 120 420 20 560 130 700 70 860 150 1020 40 1180 130 1320 70 1440 120V220H0z"/>
+    <path class="r2" d="M0 170 120 110 300 170 480 90 640 175 820 100 980 180 1160 110 1300 170 1440 130V220H0z"/>
+    <path class="r3" d="M0 200 200 165 400 200 640 170 900 205 1140 175 1440 205V220H0z"/>
+  </svg>
+</div>
+
+<!-- OVERVIEW -->
+<section id="overview">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Project overview</p>
+      <h2>Climbers lose time when a problem can't be reported.</h2>
+    </div>
+    <div class="ov-grid">
+      <div class="ov-block">
+        <span class="tag">The problem</span>
+        <h3>Altitude illness, harsh weather, no way to call for help</h3>
+        <p>Mountain climbers face serious risk from altitude illness and sudden weather. High in the mountains there is rarely a reliable way to tell anyone what is happening, so rescue starts late.</p>
+      </div>
+      <div class="ov-block">
+        <span class="tag">Our solution</span>
+        <h3>An IoT safety system with three connected parts</h3>
+        <p>A.S.C.E.N.T. is built from a smartwatch worn by the climber, a buddy unit carried by a partner, and a base-camp station with a live dashboard. Together they monitor health, raise alerts, and keep the group in touch.</p>
+      </div>
+    </div>
+    <div class="obj-row">
+      <div class="obj"><svg aria-hidden="true"><use href="#i-heart"/></svg><h3>Monitor</h3><p>Watch vital health parameters and the surrounding conditions all the way up.</p></div>
+      <div class="obj"><svg aria-hidden="true"><use href="#i-users"/></svg><h3>Connect</h3><p>Keep hikers in touch with a buddy and with base camp in remote areas.</p></div>
+      <div class="obj"><svg aria-hidden="true"><use href="#i-alert"/></svg><h3>Alert</h3><p>Raise an alarm fast and give rescuers a clear picture of who needs help.</p></div>
+    </div>
+    <ul class="benefits">
+      <li>Earlier warning of altitude trouble</li>
+      <li>Faster, better-informed rescue</li>
+      <li>More confidence for climbers and families</li>
+      <li>Dependable group communication</li>
+    </ul>
+  </div>
+</section>
+
+<!-- CASE STUDY -->
+<section class="alt" id="case">
+  <div class="wrap case">
+    <figure>
+      <img src="assets/img/case-study-rob-hall.jpg" alt="A.S.C.E.N.T. case study poster about Rob Hall and the 1996 Mount Everest expedition" width="1055" height="1491" loading="lazy">
+    </figure>
+    <div>
+      <p class="eyebrow">Real case study · Mount Everest, 1996</p>
+      <h2 style="margin-top:1rem">What the 1996 Everest disaster teaches us</h2>
+      <p class="lede" style="margin-top:1.2rem">Expedition leader Rob Hall of New Zealand was caught high on the mountain in a blizzard. Exhaustion, frostbite and running out of oxygen made the situation worse, and the group's ability to communicate with the outside world was limited.</p>
+      <blockquote>A.S.C.E.N.T. is designed for situations like this: continuous monitoring of the climber, buddy alerts, a last-known location, and an SOS that reaches base camp.</blockquote>
+      <div class="chips"><span class="chip">Blizzard</span><span class="chip">Exhaustion</span><span class="chip">Frostbite</span><span class="chip">Oxygen depletion</span><span class="chip">Emergency communication</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">How it works</p>
+      <h2>Three devices, one safety net.</h2>
+      <p class="lede">The watch and buddy unit send their readings and alerts to a base-camp receiver over Tellemetary communication. The receiver serves the live dashboard that the rescue team watches.</p>
+    </div>
+    <div class="units">
+      <div class="unit"><p class="eyebrow">Unit 1 · Wearable</p><h3>Climber's smartwatch</h3>
+        <ul><li>Round 360 × 360 touch display</li><li>Pulse, oxygen, temperature, pressure, altitude</li><li>Hold-to-send SOS with a cancel countdown</li><li>Fall detection and a local alarm</li></ul></div>
+      <div class="unit"><p class="eyebrow">Unit 2 · Buddy communication</p><h3>Partner's buddy unit</h3>
+        <ul><li>Receives the watch's quick messages</li><li>Raises its own SOS and fall alerts</li><li>Reports its own environment readings</li><li>Hold the button for 3 s to toggle SOS</li></ul></div>
+      <div class="unit"><p class="eyebrow">Base camp · Dashboard</p><h3>Receiver and live dashboard</h3>
+        <ul><li>ESP32 server found at <span style="font-family:var(--font-mono);font-size:.9em">ascent.local</span></li><li>Vitals, location, alerts and history per traveler</li><li>Trip assignment: name, destination, days</li><li>Buzzer on incoming SOS</li></ul></div>
+    </div>
+
+    <div class="diagram">
+      <svg viewBox="0 0 900 300" role="img" aria-label="Diagram: the smartwatch and buddy unit send data over Tellemetary communication to the base-camp receiver, which serves the dashboard">
+        <defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="var(--blue)"/></marker></defs>
+        <rect class="d-box" x="20" y="30" width="230" height="94" rx="14"/>
+        <text class="d-t" x="40" y="62">Unit 1 · Smartwatch</text>
+        <text class="d-s" x="40" y="84">ESP32-S3 · sensors</text>
+        <text class="d-s" x="40" y="102">SOS · fall · messages</text>
+        <rect class="d-box" x="20" y="176" width="230" height="94" rx="14"/>
+        <text class="d-t" x="40" y="208">Unit 2 · Buddy unit</text>
+        <text class="d-s" x="40" y="230">ESP32-S3 · sensors</text>
+        <text class="d-s" x="40" y="248">SOS · fall · message inbox</text>
+
+        <path class="d-line" d="M250 77 H310 Q335 77 335 107 V135 Q335 150 350 150 H372" marker-end="url(#ah)"/>
+        <path class="d-line" d="M250 223 H310 Q335 223 335 193 V165 Q335 150 350 150 H372" marker-end="url(#ah)"/>
+        <text class="d-s" x="262" y="64">telemetry + SOS</text>
+        <text class="d-s" x="262" y="239">Tellemetary</text>
+        <text class="d-s" x="262" y="253">communication</text>
+
+        <rect class="d-box hl" x="380" y="104" width="190" height="92" rx="14"/>
+        <text class="d-t hl" x="400" y="136">Base-camp receiver</text>
+        <text class="d-s hl" x="400" y="158">ESP32 web server</text>
+        <text class="d-s hl" x="400" y="176">stores alerts + trips</text>
+
+        <path class="d-line" d="M570 150 H640" marker-end="url(#ah)"/>
+        <rect class="d-box" x="650" y="60" width="230" height="180" rx="14"/>
+        <text class="d-t" x="670" y="92">Dashboard</text>
+        <text class="d-s" x="670" y="112">phone or laptop</text>
+        <polyline points="672,196 704,170 730,184 764,146 796,160 830,124 860,138" fill="none" stroke="var(--blue)" stroke-width="2.5" stroke-linejoin="round"/>
+        <circle cx="860" cy="138" r="5" fill="var(--danger)"/>
+        <path class="d-dash" d="M135 124 V176"/>
+        <text class="d-s" x="147" y="154">quick messages relay</text>
+      </svg>
+    </div>
+
+    <ol class="flow">
+      <li><b>Monitor</b><span>Sensors read health, motion and environment.</span></li>
+      <li><b>Process</b><span>The ESP32-S3 checks the readings on the device.</span></li>
+      <li><b>Alert</b><span>Abnormal values or a fall raise a warning.</span></li>
+      <li class="sos"><b>SOS</b><span>The climber holds SOS; a 3 s countdown allows cancel.</span></li>
+      <li><b>Communicate</b><span>Latest data and location go to base camp.</span></li>
+      <li><b>Rescue</b><span>Base camp sees the alert and acts quickly.</span></li>
+    </ol>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="alt" id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Features</p>
+      <h2>Built for gloved hands and thin air.</h2>
+    </div>
+    <div class="feat">
+      <article><svg aria-hidden="true"><use href="#i-heart"/></svg><h3>Health monitoring</h3><p>Pulse, blood oxygen and a temperature channel, with separate trend graphs on the watch.</p></article>
+      <article><svg aria-hidden="true"><use href="#i-mount"/></svg><h3>Altitude and conditions</h3><p>Barometric altitude, air temperature, pressure and pressure direction, with ascent and descent per trek.</p></article>
+      <article class="red"><svg aria-hidden="true"><use href="#i-alert"/></svg><h3>Hold-to-send SOS</h3><p>Hold for 1.5 s, then a 3 s countdown lets you cancel a false alarm. SOS stays available even when the screen is locked.</p></article>
+      <article class="red"><svg aria-hidden="true"><use href="#i-fall"/></svg><h3>Fall detection</h3><p>The motion sensor watches for free-fall, impact and rotation, then raises the alert straight away.</p></article>
+      <article><svg aria-hidden="true"><use href="#i-chat"/></svg><h3>Buddy messages</h3><p>Five one-tap messages: I'm safe, Regroup, Water, Return, Help. Each shows whether it was delivered.</p></article>
+      <article><svg aria-hidden="true"><use href="#i-monitor"/></svg><h3>Base-camp dashboard</h3><p>Live vitals, position, incident log and traveler profile for every device in the field.</p></article>
+      <article><svg aria-hidden="true"><use href="#i-sound"/></svg><h3>Local alarm sounds</h3><p>Separate SOS and fall sounds play from the watch and repeat until cleared, with a minimum emergency volume.</p></article>
+      <article><svg aria-hidden="true"><use href="#i-timer"/></svg><h3>Trek sessions</h3><p>Start, pause and finish a trek. Water and rest reminders count only active trekking time.</p></article>
+      <article><svg aria-hidden="true"><use href="#i-flag"/></svg><h3>Trip assignment</h3><p>Base camp assigns traveler name, destination and trip length, and the watch shows the days left.</p></article>
+    </div>
+  </div>
+</section>
+
+<!-- ALERT SIMULATOR -->
+<section id="alerts">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Try it · Alert rules</p>
+      <h2>Move the sliders and watch the watch react.</h2>
+      <p class="lede">These are the alert conditions in the A.S.C.E.N.T. design. Change a reading and the simulated watch face shows what a climber would see.</p>
+    </div>
+    <div class="sim">
+      <div class="ctrl">
+        <div class="preset" role="group" aria-label="Quick scenarios">
+          <button type="button" data-p="normal">Normal climb</button>
+          <button type="button" data-p="altitude">Climbing too fast</button>
+          <button type="button" data-p="oxygen">Low oxygen</button>
+          <button type="button" data-p="fall">Fall</button>
+        </div>
+        <label for="inSpo2"><span class="row">Blood oxygen (SpO₂) <output id="oSpo2">96 %</output></span><input id="inSpo2" type="range" min="70" max="100" value="96"><span class="hint">Alert below 90 %</span></label>
+        <label for="inHr"><span class="row">Heart rate <output id="oHr">82 bpm</output></span><input id="inHr" type="range" min="30" max="190" value="82"><span class="hint">Alert below 50 or above 120 bpm</span></label>
+        <label for="inGain"><span class="row">Altitude gained in the last 6 h <output id="oGain">220 m</output></span><input id="inGain" type="range" min="0" max="1000" step="10" value="220"><span class="hint">Alert above 500 m</span></label>
+        <div class="toggles">
+          <label class="tog" for="inFall"><input id="inFall" type="checkbox"> Fall, no movement</label>
+          <label class="tog" for="inSos"><input id="inSos" type="checkbox"> SOS pressed</label>
+        </div>
+      </div>
+      <div class="watch-wrap">
+        <div class="watch"><div class="face" id="face" data-level="ok">
+          <small>A.S.C.E.N.T.</small>
+          <div class="big" id="faceBig">ALL CLEAR</div>
+          <div class="vals"><span id="fHr">82 bpm</span><span id="fSp">96 %</span></div>
+          <div class="msg" id="faceMsg">Readings are normal.</div>
+        </div></div>
+        <div class="verdict" aria-live="polite">
+          <h4 id="vTitle">No alerts</h4>
+          <ul id="vList"><li>All readings are inside the safe range.</li></ul>
+        </div>
+      </div>
+    </div>
+    <p class="note">Status key: <span class="pill fw">In firmware</span> is already running in the prototype code. <span class="pill pl">Planned</span> is part of the design and still to be added. This is a prototype and not medical advice.</p>
+  </div>
+</section>
+
+<!-- DASHBOARD -->
+<section class="alt" id="dashboard">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Base camp · History</p>
+      <h2>Every past user stays on record.</h2>
+      <p class="lede">The base-camp dashboard keeps a History of past users: their trip, vitals, position, alerts and messages. Select a past user to open their record.</p>
+    </div>
+    <div class="dash">
+      <div class="dash-top"><b>A.S.C.E.N.T. Base Camp Dashboard</b><button class="hist-btn" type="button" aria-pressed="true">History</button><span>Past users · recorded data</span></div>
+      <div class="dash-body">
+        <div class="tlist" id="tlist" role="group" aria-label="Past users"></div>
+        <div class="tdetail" id="tdetail"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HARDWARE -->
+<section id="hardware">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Hardware</p>
+      <h2>What's inside, and how far along it is.</h2>
+      <p class="lede">Every part is a low-cost, off-the-shelf module. The last column shows what the current prototype does with it.</p>
+    </div>
+    <div class="hw-wrap">
+      <table class="hw">
+        <thead><tr><th>Component</th><th>Job</th><th>Prototype status</th></tr></thead>
+        <tbody>
+          <tr><td>ESP32-S3 round display board<span class="mono">360 × 360 touch</span></td><td>Main controller and watch screen with five swipe pages, themes and settings.</td><td><span class="state real">Working in code</span></td></tr>
+          <tr><td>MAX30102<span class="mono">SpO₂ + heart rate</span></td><td>Detects a finger on the sensor and reads pulse and oxygen.</td><td><span class="state real">Working in code</span></td></tr>
+          <tr><td>BME688<span class="mono">pressure · humidity · temp</span></td><td>Air temperature, pressure and barometric altitude for ascent and descent.</td><td><span class="state real">Working in code</span></td></tr>
+          <tr><td>Temperature sensor<span class="mono">I²C digital, LM75A-class</span></td><td>Body-side temperature channel.</td><td><span class="state real">Working in code</span></td></tr>
+          <tr><td>QMI8658 IMU<span class="mono">accelerometer + gyro</span></td><td>Fall detection from free-fall, impact and rotation.</td><td><span class="state real">Working in code</span></td></tr>
+          <tr><td>GPS module<span class="mono">live location</span></td><td>Last-known and live position sent to base camp.</td><td><span class="state real">Working in code</span></td></tr>
+          <tr><td>Speaker and microSD<span class="mono">PCM5101 DAC</span></td><td>Plays SOS and fall alarm sounds; stores trek summaries.</td><td><span class="state real">Working in code</span></td></tr>
+          <tr><td>Tellemetary communication link<span class="mono">ESP32 receiver</span></td><td>Carries telemetry, SOS and trip data to the base-camp dashboard.</td><td><span class="state real">Working in code</span></td></tr>
+          <tr><td>Satellite or long-range link</td><td>Reach base camp beyond local Tellemetary communication range.</td><td><span class="state plan">Roadmap</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="honest">
+      <svg aria-hidden="true"><use href="#i-alert"/></svg>
+      <p>A.S.C.E.N.T. is a student prototype and is not a certified medical or emergency device.</p>
+    </div>
+  </div>
+</section>
+
+<!-- BUSINESS MODEL -->
+<section class="alt" id="business">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Business model · A tech startup for safer summits</p>
+      <h2>From a school project to a product people pay for.</h2>
+    </div>
+    <div class="bm-top">
+      <p class="big">Adventure and trekking tourism keeps growing, and so does the need for <b>safety that travels on the body.</b> A.S.C.E.N.T. gives operators and rescue teams a single system instead of separate gadgets.</p>
+      <ul class="adv" style="grid-template-columns:minmax(0,1fr)">
+        <li><b>Value proposition</b><span>Real-time safety, health monitoring and emergency response in one kit.</span></li>
+        <li><b>Where it's different</b><span>A three-device network with a buddy link, a sensor set aimed at altitude, and a base-camp dashboard.</span></li>
+      </ul>
+    </div>
+
+    <h3 class="bm-h">Who it's for</h3>
+    <div class="seg">
+      <div><h3>Outdoor enthusiasts</h3><p>Trekkers and climbers who want a safety net on every trip.</p></div>
+      <div><h3>Search and rescue teams</h3><p>Teams that need to know who is in trouble, and where.</p></div>
+      <div><h3>Adventure tour operators</h3><p>Guides responsible for whole groups on high-altitude routes.</p></div>
+      <div><h3>Military and defence</h3><p>Units operating in remote, high terrain.</p></div>
+    </div>
+
+    <h3 class="bm-h">How it earns</h3>
+    <div class="rev">
+      <article><p class="eyebrow">Stream 1</p><h3>Hardware sales</h3><p>Watch and buddy-unit kits sold to individuals and groups.</p></article>
+      <article><p class="eyebrow">Stream 2</p><h3>Subscription monitoring</h3><p>A recurring fee for the base-camp dashboard, history and alert services.</p></article>
+      <article><p class="eyebrow">Stream 3</p><h3>Partnerships</h3><p>Agreements with tour operators, trekking associations and rescue organisations.</p></article>
+    </div>
+
+    <h3 class="bm-h">Why it can scale</h3>
+    <ul class="adv">
+      <li><b>Practical</b><span>Off-the-shelf sensors keep the kit affordable to build and repair.</span></li>
+      <li><b>Modular</b><span>The same watch and receiver serve one family trek or a hundred-person expedition.</span></li>
+      <li><b>Market-ready path</b><span>Each stage, from prototype to field test, adds proof before the next investment.</span></li>
+      <li><b>Aligned with the SDGs</b><span>Supports good health and well-being (SDG 3) and innovation in infrastructure (SDG 9).</span></li>
+    </ul>
+
+    <h3 class="bm-h">The journey from idea to startup</h3>
+    <ol class="road">
+      <li class="done"><small>Done</small><b>Identify a real problem</b><span>Altitude illness and lost communication on mountains.</span></li>
+      <li class="done"><small>Done</small><b>Design and build a prototype</b><span>Watch, buddy unit, receiver and dashboard.</span></li>
+      <li><small>Next</small><b>Test in real conditions</b><span>Field trials of range, battery and fall detection.</span></li>
+      <li><small>Then</small><b>Validate impact and need</b><span>Pilot with operators and rescue teams.</span></li>
+      <li><small>Goal</small><b>Scale as a student startup</b><span>Production kit and subscription service.</span></li>
+    </ol>
+  </div>
+</section>
+
+<!-- EXPERT MEET -->
+<section id="expert">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Expert meet</p>
+      <h2>What an expert told us about A.S.C.E.N.T.</h2>
+      <p class="lede" id="exLede">We presented the project to an expert and asked for honest feedback. Watch the conversation here.</p>
+    </div>
+    <div class="expert solo" id="expertGrid">
+      <div class="vframe" id="vframe">
+        <div class="vph" id="vph">
+          <div class="play"><svg aria-hidden="true"><use href="#i-play"/></svg></div>
+          <h3>Expert meet video coming soon</h3>
+          <p>To show your video, save it with this exact name and path inside the website folder, then refresh:</p>
+          <code>assets/video/expert-meet.mp4</code>
+        </div>
+      </div>
+      <div class="ex-side" id="exSide" hidden>
+        <div class="ex-who" id="exWho"></div>
+        <div id="exTake"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section class="alt" id="gallery">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Gallery</p>
+      <h2>Posters, brochures and the exhibition stall.</h2>
+      <p class="lede">Tap any image to view it full size.</p>
+    </div>
+    <div class="gal" id="gal"></div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section id="team">
+  <div class="wrap team">
+    <div>
+      <p class="eyebrow">Contact</p>
+      <h2 style="margin-top:1rem">Built by a student who wants climbers to come home.</h2>
+      <p class="lede" style="margin-top:1.2rem">A.S.C.E.N.T. is presented by JBCN International School at the World STEM &amp; Robotics Olympiad (WSRO) Entrepreneurship Competition. Questions, feedback and partnership ideas are welcome.</p>
+    </div>
+    <div class="card-c">
+      <p class="eyebrow">Project lead</p>
+      <b>Shaurya Oza</b>
+      <span>JBCN International School</span>
+      <span class="mono" id="mail">shauryaoza12@gmail.com</span>
+      <button class="cp" type="button" id="copyMail">Copy email</button>
+      <!-- To show a phone number here, add: <span class="mono">+91 XXXXX XXXXX</span> -->
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap"><span>A.S.C.E.N.T. · Altitude Safety &amp; Climber Emergency Notification Technology</span><span>Student prototype · not a certified medical or emergency device</span></div>
+</footer>
+
+<dialog class="lb" id="lb" aria-label="Image viewer"><button class="x" type="button" id="lbX" aria-label="Close image">×</button><img id="lbImg" alt=""><p id="lbCap"></p></dialog>
+
+<script>
+/* ============ EDIT THIS BLOCK: expert meet video ============
+   1) Save your video as  assets/video/expert-meet.mp4  (H.264 MP4 works everywhere).
+   2) Optional thumbnail:  assets/video/expert-meet-poster.jpg
+   3) Or use YouTube: put the video ID in youtubeId (the part after v= in the link).
+   4) Fill in name/role/date/takeaways to show the side panel. Leave blank to hide it. */
+var EXPERT = {
+  video: "assets/video/expert-meet.mp4",
+  poster: "assets/video/expert-meet-poster.jpg",
+  youtubeId: "",
+  name: "",
+  role: "",
+  date: "",
+  takeaways: []   // e.g. ["Add a rugged case", "Test range above 5,000 m"]
+};
+
+(function(){
+  var $ = function(s){ return document.querySelector(s); };
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* theme toggle */
+  var root = document.documentElement, icon = $("#themeIcon");
+  function isDark(){ var t = root.getAttribute("data-theme"); if(t) return t==="dark"; return window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches; }
+  function paintIcon(){ icon.setAttribute("href", isDark() ? "#i-sun" : "#i-moon"); }
+  try { var saved = localStorage.getItem("ascent-theme"); if(saved) root.setAttribute("data-theme", saved); } catch(e){}
+  paintIcon();
+  $("#themeBtn").addEventListener("click", function(){
+    var next = isDark() ? "light" : "dark"; root.setAttribute("data-theme", next);
+    try { localStorage.setItem("ascent-theme", next); } catch(e){}
+    paintIcon();
+  });
+
+  /* active nav link */
+  var links = [].slice.call(document.querySelectorAll(".nav-links a"));
+  if("IntersectionObserver" in window){
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ links.forEach(function(a){ a.removeAttribute("aria-current"); if(a.getAttribute("href")==="#"+e.target.id) a.setAttribute("aria-current","true"); }); } });
+    },{rootMargin:"-45% 0px -50% 0px"});
+    links.forEach(function(a){ var s = document.getElementById(a.getAttribute("href").slice(1)); if(s) io.observe(s); });
+  }
+
+  /* hero gauge: marker travels the altitude profile */
+  var pts = [[40,260],[95,248],[150,224],[205,230],[260,191],[315,170],[370,143],[425,122],[480,102]];
+  var dot = $("#gDot"), rAlt = $("#rAlt");
+  function alt(y){ return Math.round(3500 + (290 - y) / 0.3 ) ; }
+  function place(t){ // t 0..1 along polyline by segment
+    var f = t * (pts.length-1), i = Math.min(Math.floor(f), pts.length-2), k = f - i;
+    var x = pts[i][0] + (pts[i+1][0]-pts[i][0])*k, y = pts[i][1] + (pts[i+1][1]-pts[i][1])*k;
+    dot.setAttribute("cx", x); dot.setAttribute("cy", y);
+    rAlt.textContent = alt(y).toLocaleString("en-US") + " m";
+  }
+  if(!reduce){
+    var t0 = null, dur = 14000;
+    (function loop(ts){
+      if(t0===null) t0 = ts; var p = ((ts - t0) % (dur + 2500)) / dur; if(p>1) p = 1; if(p<0) p = 0;
+      place(p); requestAnimationFrame(loop);
+    })(performance.now());
+  }
+
+  /* alert simulator */
+  var inSpo2=$("#inSpo2"), inHr=$("#inHr"), inGain=$("#inGain"), inFall=$("#inFall"), inSos=$("#inSos");
+  function sim(){
+    var s=+inSpo2.value, h=+inHr.value, g=+inGain.value, fall=inFall.checked, sos=inSos.checked;
+    $("#oSpo2").textContent = s+" %"; $("#oHr").textContent = h+" bpm"; $("#oGain").textContent = g+" m";
+    $("#fHr").textContent = h+" bpm"; $("#fSp").textContent = s+" %";
+    var items = [];
+    if(s<90) items.push(["SpO₂ is "+s+" %, below 90 %","pl"]);
+    if(h<50) items.push(["Heart rate "+h+" bpm is below 50","pl"]);
+    if(h>120) items.push(["Heart rate "+h+" bpm is above 120","pl"]);
+    if(g>500) items.push(["Climbed "+g+" m in 6 h, above 500 m","pl"]);
+    if(fall) items.push(["Fall detected and no movement","fw"]);
+    if(sos) items.push(["SOS pressed by the climber","fw"]);
+    var level = (fall||sos) ? "sos" : items.length ? "warn" : "ok";
+    var face = $("#face"); face.setAttribute("data-level", level);
+    var big = level==="sos" ? "SOS SENT" : level==="warn" ? "DESCEND" : "ALL CLEAR";
+    var msg = level==="sos" ? "Basecamp and buddy alerted. Alarm sounding." : level==="warn" ? "Stop climbing and descend. Base camp notified." : "Readings are normal.";
+    $("#faceBig").textContent = big; $("#faceMsg").textContent = msg;
+    $("#vTitle").textContent = level==="ok" ? "No alerts" : items.length + (items.length>1?" conditions":" condition") + " triggered";
+    var ul = $("#vList"); ul.innerHTML = "";
+    if(!items.length){ ul.innerHTML = "<li>All readings are inside the safe range.</li>"; }
+    items.forEach(function(it){
+      var li = document.createElement("li"), sp = document.createElement("span"), pill = document.createElement("span");
+      sp.textContent = it[0]; pill.className = "pill "+it[1]; pill.textContent = it[1]==="fw" ? "In firmware" : "Planned";
+      li.appendChild(sp); li.appendChild(pill); ul.appendChild(li);
+    });
+  }
+  [inSpo2,inHr,inGain,inFall,inSos].forEach(function(el){ el.addEventListener("input", sim); });
+  var presets = { normal:[96,82,220,0,0], altitude:[93,104,720,0,0], oxygen:[84,118,260,0,0], fall:[95,96,200,1,0] };
+  document.querySelectorAll(".preset button").forEach(function(b){
+    b.addEventListener("click", function(){ var p = presets[b.dataset.p]; inSpo2.value=p[0]; inHr.value=p[1]; inGain.value=p[2]; inFall.checked=!!p[3]; inSos.checked=!!p[4]; sim(); });
+  });
+  sim();
+
+  /* basecamp dashboard preview (sample data from the receiver demo mode) */
+  var T = [
+    {name:"Aarav Mehta",dest:"Everest Base Camp Trek, Nepal",day:6,days:14,st:"ok",team:"Expedition Alpha",id:"ASCENT-W-001",age:"29 / Male",blood:"O+",med:"None",contact:"+91 98765 43210",
+      v:{spo2:92,bpm:84,bt:36.7,et:-2.5,alt:3440,prs:672},seen:"2 s ago",rssi:-58,pos:"27.8069, 86.7140",bpmH:[78,81,84,80,86,84,88,83,84],
+      msgs:[["12 min ago","Sent: I'm safe","Received by buddy"],["1 h ago","Received: Wait / regroup","Received"],["3 h ago","Sent: Need water","Received by buddy"]]},
+    {name:"Priya Nair",dest:"Kedarkantha, Uttarakhand",day:3,days:6,st:"ok",team:"Expedition Alpha",id:"ASCENT-A-001",age:"27 / Female",blood:"B+",med:"None",contact:"+91 98765 43211",
+      v:{spo2:96,bpm:76,bt:36.5,et:4.1,alt:3250,prs:690},seen:"1 s ago",rssi:-51,pos:"31.0214, 78.1640",bpmH:[74,76,79,75,73,77,76,78,76],
+      msgs:[["4 min ago","Received: Return to camp","Received"],["20 min ago","Sent: I'm safe","Received by buddy"]]},
+    {name:"Rohan Das",dest:"Hampta Pass, Himachal Pradesh",day:4,days:5,st:"sos",team:"Expedition Bravo",id:"ASCENT-W-003",age:"34 / Male",blood:"A+",med:"Mild hypertension",contact:"+91 98765 43212",
+      v:{spo2:86,bpm:131,bt:37.9,et:-6.0,alt:4270,prs:600},seen:"1 s ago",rssi:-67,pos:"32.2650, 77.3500",bpmH:[98,104,111,118,122,127,129,131,131],
+      msgs:[["4 min ago","Sent: SOS emergency","Pending, not confirmed"],["9 min ago","Sent: Need help","Received by buddy"],["25 min ago","Sent: Wait / regroup","Received by buddy"]]},
+    {name:"Sneha Kulkarni",dest:"Valley of Flowers, Uttarakhand",day:2,days:7,st:"ok",team:"Expedition Bravo",id:"ASCENT-W-004",age:"31 / Female",blood:"AB+",med:"None",contact:"+91 98765 43213",
+      v:{spo2:95,bpm:88,bt:36.6,et:7.3,alt:3200,prs:693},seen:"3 s ago",rssi:-60,pos:"30.7280, 79.6050",bpmH:[84,90,86,92,88,85,89,87,88],
+      msgs:[["2 h ago","Sent: Need help (fall, cleared after 1 m 40 s)","Received by buddy"],["2 h ago","Received: I'm safe","Received"]]},
+    {name:"Vikram Singh",dest:"Stok Kangri, Ladakh",day:7,days:9,st:"off",team:"Expedition Charlie",id:"ASCENT-W-005",age:"41 / Male",blood:"O-",med:"Mild asthma",contact:"+91 98765 43214",
+      v:{spo2:90,bpm:92,bt:36.2,et:-11.0,alt:5100,prs:540},seen:"12 min ago",rssi:-92,pos:"33.9783, 77.4543",bpmH:[90,94,91,95,92,90,93,92,92],
+      msgs:[["12 min ago","Sent: Return to camp","Pending, not confirmed"],["1 h ago","Received: Need water","Received"]]}
+  ];
+  var STL = {ok:"COMPLETED",sos:"SOS RECORDED",off:"DEVICE LOST",fall:"FALL RECORDED"};
+  var tlist=$("#tlist"), tdet=$("#tdetail"), sel=0;
+  function el(tag, cls, txt){ var e=document.createElement(tag); if(cls) e.className=cls; if(txt!==undefined) e.textContent=txt; return e; }
+  function spark(vals, th){
+    var w=300,h=150,mn=40,mx=150, pts=vals.map(function(v,i){ return [8+i*(w-16)/(vals.length-1), h-8-(v-mn)/(mx-mn)*(h-16)]; });
+    var d=pts.map(function(p,i){return (i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1);}).join(" ");
+    var ty=h-8-(th-mn)/(mx-mn)*(h-16), last=pts[pts.length-1];
+    return '<svg viewBox="0 0 '+w+' '+h+'" role="img" aria-label="Heart rate over the last readings"><line class="sp-th" x1="8" x2="'+(w-8)+'" y1="'+ty.toFixed(1)+'" y2="'+ty.toFixed(1)+'"/><path class="sp-fill" d="'+d+' L'+last[0]+' '+(h-8)+' L8 '+(h-8)+'Z"/><path class="sp-line" d="'+d+'"/><circle cx="'+last[0].toFixed(1)+'" cy="'+last[1].toFixed(1)+'" r="4.5" fill="var(--accent)" stroke="var(--ink)" stroke-width="1.5"/></svg>';
+  }
+  function renderList(){
+    tlist.innerHTML="";
+    T.forEach(function(t,i){
+      var b=el("button","tbtn"); b.type="button"; b.setAttribute("aria-pressed", i===sel);
+      var dot=el("i",t.st); var n=el("b",null,t.name); var s=el("small",null,t.dest.split(",")[0]);
+      b.appendChild(dot); b.appendChild(n); b.appendChild(s);
+      b.addEventListener("click",function(){ sel=i; renderList(); renderDetail(); });
+      tlist.appendChild(b);
+    });
+  }
+  function vt(label,val,unit,bad){ var d=el("div","vt"+(bad?" bad":"")); d.appendChild(el("small",null,label)); var b=el("b",null,String(val)); b.appendChild(el("em",null,unit)); d.appendChild(b); return d; }
+  function kvRow(dl,k,v){ dl.appendChild(el("dt",null,k)); dl.appendChild(el("dd",null,v)); }
+  function renderDetail(){
+    var t=T[sel], v=t.v; tdet.innerHTML="";
+    if(t.st==="sos"){ tdet.appendChild(el("div","banner sos","SOS EMERGENCY RECORDED · "+t.name.toUpperCase()+" · "+t.dest+" · lasted 4 m 12 s")); }
+    if(t.st==="off"){ tdet.appendChild(el("div","banner off","Device went offline. Last update "+t.seen+". Showing the last recorded state.")); }
+    var bar=el("div","tbar"); var l=el("div"); l.appendChild(el("h3",null,t.name)); l.appendChild(el("p",null,t.dest+" · "+t.team));
+    bar.appendChild(l); bar.appendChild(el("span","status "+t.st,STL[t.st])); tdet.appendChild(bar);
+    var pr=el("div","prog"); pr.innerHTML='<div class="bar"><i style="width:'+Math.round(t.day/t.days*100)+'%"></i></div>'; pr.appendChild(el("small",null,"Day "+t.day+" of "+t.days+" · "+(t.days-t.day)+" days left")); tdet.appendChild(pr);
+    var g=el("div","vit");
+    g.appendChild(vt("SpO₂",v.spo2,"%",v.spo2<90)); g.appendChild(vt("Heart rate",v.bpm,"bpm",v.bpm<50||v.bpm>120)); g.appendChild(vt("Body temp",v.bt.toFixed(1),"°C",false));
+    g.appendChild(vt("Altitude",v.alt.toLocaleString("en-US"),"m",false)); g.appendChild(vt("Air temp",v.et.toFixed(1),"°C",false)); g.appendChild(vt("Pressure",v.prs,"hPa",false));
+    tdet.appendChild(g);
+    var two=el("div","two");
+    var p1=el("div","panel"); p1.appendChild(el("h4",null,"Heart rate trend")); var sv=el("div"); sv.innerHTML=spark(t.bpmH,120); p1.appendChild(sv); two.appendChild(p1);
+    var p2=el("div","panel"); p2.appendChild(el("h4",null,"Traveler")); var dl=el("dl","kv");
+    kvRow(dl,"Age / gender",t.age); kvRow(dl,"Blood group",t.blood); kvRow(dl,"Medical",t.med); kvRow(dl,"Tracker",t.id); kvRow(dl,"Position",t.pos); kvRow(dl,"Signal",t.rssi+" dBm"); kvRow(dl,"Last update",t.seen);
+    p2.appendChild(dl); two.appendChild(p2); tdet.appendChild(two);
+    var p3=el("div","panel"); p3.appendChild(el("h4",null,"Message log")); var ul=el("ul","log");
+    t.msgs.forEach(function(m){ var li=el("li"); li.appendChild(el("time",null,m[0])); var sp=el("span",null,m[1]); sp.appendChild(el("small",null,m[2])); li.appendChild(sp); ul.appendChild(li); });
+    p3.appendChild(ul); tdet.appendChild(p3);
+  }
+  renderList(); renderDetail();
+
+  /* expert video */
+  var vframe=$("#vframe"), vph=$("#vph");
+  function showVideoMeta(){
+    var any = EXPERT.name || EXPERT.role || (EXPERT.takeaways && EXPERT.takeaways.length);
+    if(!any) return;
+    $("#exSide").hidden=false; $("#expertGrid").classList.remove("solo");
+    var who=$("#exWho"); who.innerHTML="";
+    who.appendChild(el("b",null,EXPERT.name||"Our expert")); if(EXPERT.role) who.appendChild(el("span",null,EXPERT.role+(EXPERT.date?" · "+EXPERT.date:"")));
+    var tk=$("#exTake"); tk.innerHTML="";
+    if(EXPERT.takeaways && EXPERT.takeaways.length){ tk.appendChild(el("h3",null,"Key takeaways")); var u=el("ul"); EXPERT.takeaways.forEach(function(x){ u.appendChild(el("li",null,x)); }); tk.appendChild(u); }
+    else { $("#exWho").style.gridColumn="1"; }
+  }
+  if(EXPERT.youtubeId){
+    var f=document.createElement("iframe"); f.src="https://www.youtube-nocookie.com/embed/"+encodeURIComponent(EXPERT.youtubeId); f.title="Expert meet video";
+    f.allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen"; f.allowFullscreen=true; vframe.appendChild(f); vph.hidden=true; showVideoMeta();
+  } else if(EXPERT.video){
+    var vid=document.createElement("video"); vid.controls=true; vid.preload="metadata"; vid.playsInline=true; vid.hidden=true; vid.setAttribute("aria-label","Expert meet video");
+    if(EXPERT.poster) vid.poster=EXPERT.poster;
+    vid.addEventListener("loadedmetadata",function(){ vid.hidden=false; vph.hidden=true; showVideoMeta(); });
+    vid.addEventListener("error",function(){ vid.hidden=true; vph.hidden=false; });
+    vid.src=EXPERT.video; vframe.insertBefore(vid, vph);
+  }
+
+  /* gallery + lightbox */
+  var G = [
+    ["poster-competition","International Student Innovation Competition poster","Competition poster",1024,1536],
+    ["brochure-architecture","Brochure: project overview, features, system architecture","Brochure · overview and architecture",1536,1024],
+    ["brochure-impact","Brochure: impact, opportunity, hardware and journey","Brochure · impact and startup journey",1536,1024],
+    ["exhibition-stall","Exhibition stall with roll-up banner, backdrop and demo units","Exhibition stall design",1672,941],
+    ["poster-acent-business","Business concept poster with market and business perspective","Business concept poster",887,1774],
+    ["watch-ui-reference","Smartwatch screen design reference","Watch screens · design reference, not device photos",1640,1120],
+    ["sticker-pack","A.S.C.E.N.T. takeaway sticker pack","Takeaway sticker pack",1536,1024],
+    ["feedback-mountain","Climb the Feedback Mountain visitor feedback board","Visitor feedback board",1536,1024],
+    ["case-study-rob-hall","Case study poster: Rob Hall, Everest 1996","Case study poster · Everest 1996",1055,1491]
+  ];
+  var gal=$("#gal"), lb=$("#lb"), lbImg=$("#lbImg"), lbCap=$("#lbCap");
+  G.forEach(function(g){
+    var fig=el("figure"), b=el("button"); b.type="button"; b.setAttribute("aria-label","Open: "+g[2]);
+    var im=document.createElement("img"); im.src="assets/img/"+g[0]+".jpg"; im.alt=g[1]; im.loading="lazy"; im.width=g[3]; im.height=g[4];
+    b.appendChild(im); fig.appendChild(b); var c=el("figcaption"); c.appendChild(el("b",null,g[2])); fig.appendChild(c); gal.appendChild(fig);
+    b.addEventListener("click",function(){ lbImg.src=im.src; lbImg.alt=g[1]; lbCap.textContent=g[2]; if(lb.showModal) lb.showModal(); else lb.setAttribute("open",""); });
+  });
+  $("#lbX").addEventListener("click",function(){ lb.close(); });
+  lb.addEventListener("click",function(e){ if(e.target===lb) lb.close(); });
+
+  /* copy email */
+  $("#copyMail").addEventListener("click",function(){
+    var btn=this, txt=$("#mail").textContent;
+    function done(ok){ btn.textContent = ok ? "Copied" : "Select the email and copy it"; setTimeout(function(){ btn.textContent="Copy email"; },2200); }
+    try { navigator.clipboard.writeText(txt).then(function(){done(true);},function(){ var r=document.createRange(); r.selectNodeContents($("#mail")); var s=getSelection(); s.removeAllRanges(); s.addRange(r); done(false); }); }
+    catch(e){ done(false); }
+  });
+})();
+</script>
