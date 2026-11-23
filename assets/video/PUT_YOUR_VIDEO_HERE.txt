@@ -1,0 +1,7 @@
+Save the expert meet video in this folder as:
+
+    expert-meet.mp4            (required, H.264 MP4)
+    expert-meet-poster.jpg     (optional thumbnail, 1280x720)
+
+Then open index.html and scroll to "Expert meet". 
+To use YouTube instead, edit the EXPERT block near the bottom of index.html and set youtubeId.
